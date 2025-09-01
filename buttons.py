@@ -17,9 +17,8 @@ def turnOffScreen():
     os.system('raspi-gpio set 19 ip')
     GPIO.output(18, GPIO.LOW)
 
-
-turnOffScreen()
-screen_on = False
+turnOnScreen()
+screen_on = True
 
 while (True):
     # If you are having and issue with the button doing the opposite of what you want
