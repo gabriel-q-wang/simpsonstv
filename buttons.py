@@ -18,5 +18,13 @@ def turnOffScreen():
     GPIO.output(18, GPIO.LOW)
 
 
-turnOnScreen()
-screen_on = True
+turnOffScreen()
+screen_on = False
+
+while (True):
+    # If you are having and issue with the button doing the opposite of what you want
+    # IE Turns on when it should be off, change this line to:
+    # input = not GPIO.input(26)
+    input = GPIO.input(26)
+    turnOnScreen()
+    time.sleep(0.3)

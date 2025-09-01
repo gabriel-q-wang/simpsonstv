@@ -3,7 +3,7 @@ import random
 import time
 from subprocess import PIPE, Popen, STDOUT
 
-directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos')
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos/encoded')
 
 videos = []
 
