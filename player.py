@@ -54,14 +54,13 @@ def playVideos():
                     pass
                 previous_state = GPIO.input(23)
                 playProcess.wait()
-                time.sleep(1)
+                time.sleep(0.25)
                 # If the process is still running, force-terminate it
                 if playProcess.poll() is None:
                     playProcess.terminate()
-                    time.sleep(1)  # Give it a moment to stop
+                    time.sleep(0.25)  # Give it a moment to stop
                     if playProcess.poll() is None:
                         playProcess.kill()
-                time.sleep(0.5)
                 playProcess = None
                 break
             time.sleep(1) # Wait for a second before re-checking
