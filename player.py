@@ -42,8 +42,8 @@ def playVideos():
     previous_state = GPIO.input(23)
     playProcess = None
     for video in videos:
-        playProcess = subprocess.Popen(['omxplayer', '--no-osd', '--aspect-mode', 'fill', video], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        while playProcess is not None:
+        playProcess = subprocess.Popen(['omxplayer', '--blank', '--no-osd', '--aspect-mode', 'fill', video], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        while playProcess.poll() is None:
             if skipCurrentVideo(previous_state):
                 try:
                     playProcess.stdin.write(b'q')
@@ -61,6 +61,7 @@ def playVideos():
                 playProcess = None
                 break
             time.sleep(1) # Wait for a second before re-checking
+        playProcess = None
 
 while (True):
     playVideos()
