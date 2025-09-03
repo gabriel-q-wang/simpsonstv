@@ -50,7 +50,6 @@ def playVideos():
         while playProcess is not None:
             if skipCurrentVideo(previous_state):
                 nextPlayProcess = subprocess.Popen(['omxplayer', '--no-osd', '--aspect-mode', 'fill', next_video], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                time.sleep(0.2)
                 try:
                     playProcess.stdin.write(b'q')
                     playProcess.stdin.flush()
