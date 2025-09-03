@@ -4,7 +4,9 @@ import time
 import RPi.GPIO as GPIO
 import subprocess
 
-directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos/encoded')                                                                                                                                                                                   videos = []
+directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos/encoded')
+
+videos = []
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
