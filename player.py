@@ -41,10 +41,15 @@ def playVideos():
     random.shuffle(videos)
     previous_state = GPIO.input(23)
     playProcess = None
-    for video in videos:
-        playProcess = subprocess.Popen(['omxplayer', '--no-osd', '--aspect-mode', 'fill', video], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    for index, video in enumerate(videos):
+        if playProcess is None:
+            playProcess = subprocess.Popen(['omxplayer', '--no-osd', '--aspect-mode', 'fill', video], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        next_video = video[0]
+        if index + 1 < len(videos):
+            next_video = videos[index+1]
         while playProcess is not None:
             if skipCurrentVideo(previous_state):
+                nextPlayProcess = subprocess.Popen(['omxplayer', '--no-osd', '--aspect-mode', 'fill', next_video], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 try:
                     playProcess.stdin.write(b'q')
                     playProcess.stdin.flush()
@@ -58,7 +63,7 @@ def playVideos():
                     playProcess.terminate()
                     if playProcess.poll() is None:
                         playProcess.kill()
-                playProcess = None
+                playProcess = nextPlayProcess
                 break
             time.sleep(1) # Wait for a second before re-checking
 
