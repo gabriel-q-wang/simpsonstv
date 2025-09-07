@@ -69,33 +69,23 @@ def playVideos():
     # Binary to determine which dbus the current player is on. True = Dbus1
     curr_dbus = False
     for index, video in enumerate(videos):
-        next_video, next_index = get_next_video(index)
+        next_video, _ = get_next_video(index)
         if curr_player is None:
             curr_player = setup_player(video, DBUS_NAME_1)
             curr_dbus = True
+            curr_player.play()
         next_dbus = DBUS_NAME_2 if curr_dbus else DBUS_NAME_1
         next_player = setup_player(next_video, next_dbus)
-        curr_player.play()
-        while curr_player is not None:
+        while curr_player is not None and curr_player.playback_status() != "Stopped":
             if skipCurrentVideo(previous_state):
-                next_player.play()
-                curr_player.quit()
-                curr_player = None
-                previous_state = GPIO.input(23)
-                curr_dbus = not curr_dbus
-                curr_player, next_player = next_player, None
                 break
-
-            remaining_time = curr_player.duration() - curr_player.position()
-            if remaining_time < 3:
-                next_player.play()
-                curr_player.quit()
-                curr_player = None
-                # Swap the players for the next iteration
-                curr_player, next_player = next_player, None
-                curr_dbus = not curr_dbus
-
-            time.sleep(1) # Wait for a second before re-checking
+            time.sleep(3) # Wait 3 seconds before re-checking
+        next_player.play()
+        curr_player.quit()
+        curr_player = None
+        previous_state = GPIO.input(23)
+        curr_dbus = not curr_dbus
+        curr_player, next_player = next_player, None
 
 while (True):
     playVideos()
