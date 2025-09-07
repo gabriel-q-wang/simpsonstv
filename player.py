@@ -76,10 +76,11 @@ def playVideos():
         next_dbus = DBUS_NAME_2 if curr_dbus else DBUS_NAME_1
         next_player = setup_player(next_video, next_dbus)
         curr_player.play()
-        while curr_player.playback_status == "Playing":
+        while curr_player is not None:
             if skipCurrentVideo(previous_state):
                 next_player.play()
                 curr_player.quit()
+                curr_player = None
                 previous_state = GPIO.input(23)
                 curr_dbus = not curr_dbus
                 curr_player, next_player = next_player, None
@@ -89,6 +90,7 @@ def playVideos():
             if remaining_time < 3:
                 next_player.play()
                 curr_player.quit()
+                curr_player = None
                 # Swap the players for the next iteration
                 curr_player, next_player = next_player, None
                 curr_dbus = not curr_dbus
