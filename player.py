@@ -3,10 +3,13 @@ import random
 import time
 import RPi.GPIO as GPIO
 import subprocess
+from omxplayer.player import OMXPlayer
+from omxplayer.exceptions import OMXPlayerDBusException
+
 
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos/encoded')
-
 videos = []
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(23, GPIO.OUT)
@@ -14,6 +17,16 @@ GPIO.output(23, GPIO.HIGH) # Set high
 time.sleep(1)
 GPIO.output(23, GPIO.LOW)  # Set low
 GPIO.setup(23, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+
+DBUS_NAME_1 = 'org.mpris.MediaPlayer2.omxplayer1'
+DBUS_NAME_2 = 'org.mpris.MediaPlayer2.omxplayer2'
+
+
+# Initialize players to None
+curr_player = None
+next_player = None
+
 
 def skipCurrentVideo(previous_state):
     # Button assigned to GPIO 23
@@ -32,36 +45,58 @@ def getVideos():
             videos.append(os.path.join(directory, file))
 
 
+def get_next_video(current_index):
+    """Get the next video file path in the list."""
+    global videos
+    next_index = (current_index + 1) % len(videos)
+    return videos[next_index], next_index
+
+
+def setup_player(video_file, dbus_name):
+    """Initialize an omxplayer instance with a custom D-Bus name."""
+    print(f"Initializing player with video: {video_file} and dbus_name: {dbus_name}")
+    player = OMXPlayer(video_file, dbus_name=dbus_name, args=['--blank', '--no-osd', '--aspect-mode', 'fill'])
+    player.pause() # Start paused
+    return player
+
+
 def playVideos():
     global videos
+    global curr_player, next_player
     if len(videos) == 0:
         getVideos()
         time.sleep(5)
         return
     random.shuffle(videos)
     previous_state = GPIO.input(23)
-    playProcess = None
-    for video in videos:
-        playProcess = subprocess.Popen(['omxplayer', '--blank', '--no-osd', '--aspect-mode', 'fill', video], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        while playProcess.poll() is None:
+    # Binary to determine which dbus the current player is on. True = Dbus1
+    curr_dbus = False
+    for index, video in enumerate(videos):
+        next_video, next_index = get_next_video(index)
+        if curr_player is None:
+            curr_player = setup_player(video, DBUS_NAME_1)
+            curr_dbus = True
+        next_dbus = DBUS_NAME_2 if curr_dbus else DBUS_NAME_1
+        next_player = setup_player(next_video, next_dbus)
+        curr_player.play()
+        while curr_player.playback_status == "Playing":
             if skipCurrentVideo(previous_state):
-                try:
-                    playProcess.stdin.write(b'q')
-                    playProcess.stdin.flush()
-                except BrokenPipeError:
-                    # This can happen if the process has already exited
-                    pass
+                next_player.play()
+                curr_player.quit()
                 previous_state = GPIO.input(23)
-                playProcess.wait()
-                # If the process is still running, force-terminate it
-                if playProcess.poll() is None:
-                    playProcess.terminate()
-                    if playProcess.poll() is None:
-                        playProcess.kill()
-                playProcess = None
+                curr_dbus = not curr_dbus
+                curr_player, next_player = next_player, None
                 break
+
+            remaining_time = curr_player.duration() - curr_player.position()
+            if remaining_time < 3:
+                next_player.play()
+                curr_player.quit()
+                # Swap the players for the next iteration
+                curr_player, next_player = next_player, None
+                curr_dbus = not curr_dbus
+
             time.sleep(1) # Wait for a second before re-checking
-        playProcess = None
 
 while (True):
     playVideos()
