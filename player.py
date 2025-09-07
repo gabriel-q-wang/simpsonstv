@@ -61,7 +61,8 @@ def playVideos():
     global videos
     global curr_player, next_player
     videos = []
-    curr_player, next_player = None
+    curr_player = None
+    next_player = None
     if len(videos) == 0:
         getVideos()
     random.shuffle(videos)
@@ -93,7 +94,8 @@ def playVideos():
     while (True):
         if skipCurrentVideo(previous_state):
             curr_player.quit()
-            curr_player, next_player = None
+            curr_player = None
+            next_player = None
             break
         time.sleep(1) # Wait 1 second before re-checking  
 
