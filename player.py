@@ -25,8 +25,6 @@ DBUS_NAME_2 = 'org.mpris.MediaPlayer2.omxplayer2'
 curr_player = None
 next_player = None
 
-finished_playing = False
-
 
 def skipCurrentVideo(previous_state):
     # Button assigned to GPIO 23
@@ -62,11 +60,10 @@ def setup_player(video_file, dbus_name):
 def playVideos():
     global videos
     global curr_player, next_player
-    global finished_playing
+    videos = []
+    curr_player, next_player = None
     if len(videos) == 0:
         getVideos()
-        time.sleep(5)
-        return
     random.shuffle(videos)
     previous_state = GPIO.input(23)
     # Binary to determine which dbus the current player is on. True = Dbus1
@@ -83,14 +80,22 @@ def playVideos():
         while time.time() < estimated_end_time:
             if skipCurrentVideo(previous_state):
                 break  
-            time.sleep(3) # Wait 3 seconds before re-checking
+            time.sleep(1) # Wait 1 second before re-checking
         next_player.play()
         curr_player.quit()
         curr_player = None
         previous_state = GPIO.input(23)
         curr_dbus = not curr_dbus
         curr_player, next_player = next_player, None
-        finished_playing = False
+    
+    # If you skip until the end of the list of the videos, the first video plays
+    # with nothing else in queue. Allow for it to be skipped to allow reset in next cycle.
+    while (True):
+        if skipCurrentVideo(previous_state):
+            curr_player.quit()
+            curr_player, next_player = None
+            break
+        time.sleep(1) # Wait 1 second before re-checking  
 
 
 while (True):
