@@ -54,7 +54,6 @@ def get_next_video(current_index):
 
 def setup_player(video_file, dbus_name):
     """Initialize an omxplayer instance with a custom D-Bus name."""
-    print(f"Initializing player with video: {video_file} and dbus_name: {dbus_name}")
     player = OMXPlayer(video_file, dbus_name=dbus_name, args=['--blank', '--no-osd', '--aspect-mode', 'fill'])
     player.pause() # Start paused
     return player
