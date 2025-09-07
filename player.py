@@ -2,9 +2,7 @@ import os
 import random
 import time
 import RPi.GPIO as GPIO
-import subprocess
 from omxplayer.player import OMXPlayer
-from omxplayer.exceptions import OMXPlayerDBusException
 
 
 directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'videos/encoded')
