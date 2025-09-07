@@ -59,11 +59,6 @@ def setup_player(video_file, dbus_name):
     return player
 
 
-def video_finished():
-    global finished_playing
-    finished_playing = True
-
-
 def playVideos():
     global videos
     global curr_player, next_player
@@ -82,14 +77,12 @@ def playVideos():
             curr_player = setup_player(video, DBUS_NAME_1)
             curr_dbus = True
             curr_player.play()
-        curr_player.exitEvent += lambda _: video_finished()
         next_dbus = DBUS_NAME_2 if curr_dbus else DBUS_NAME_1
         next_player = setup_player(next_video, next_dbus)
-        while curr_player.is_playing():
+        estimated_end_time = time.time() + curr_player.duration()
+        while time.time() < estimated_end_time:
             if skipCurrentVideo(previous_state):
-                break
-            if finished_playing:
-                break       
+                break  
             time.sleep(3) # Wait 3 seconds before re-checking
         next_player.play()
         curr_player.quit()
