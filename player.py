@@ -76,7 +76,7 @@ def playVideos():
             curr_player.play()
         next_dbus = DBUS_NAME_2 if curr_dbus else DBUS_NAME_1
         next_player = setup_player(next_video, next_dbus)
-        while curr_player is not None and curr_player.playback_status() != "Stopped":
+        while curr_player.is_playing():
             if skipCurrentVideo(previous_state):
                 break
             time.sleep(3) # Wait 3 seconds before re-checking
